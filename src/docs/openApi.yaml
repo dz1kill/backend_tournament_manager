@@ -1,0 +1,251 @@
+openapi: 3.0.0
+info:
+  title: tournament_manager.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+    description: Development server
+
+paths:
+  /api/users/sing-up:
+    post:
+      tags:
+        - User
+      summary: Registration user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/singUpUser"
+      responses:
+        201:
+          description: User registered.
+        409:
+          description: User with this nickname already exists.
+        500:
+          description: Server error.
+
+  /api/users/find_leaderboard:
+    get:
+      tags:
+        - User
+      summary: Get leaderboard - all users
+      responses:
+        201:
+          description: Find leaderboard successfully
+        500:
+          description: Server error.
+
+  /api/tournaments/new:
+    post:
+      tags:
+        - Tournaments
+      summary: New tournament .
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/newTournament"
+      responses:
+        201:
+          description: Tournament created.
+        409:
+          description: Tournament with this name already exists.
+        500:
+          description: Server error.
+
+  /api/tournaments/register:
+    post:
+      tags:
+        - Tournaments
+      summary: Register for tournament
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/registerTournament"
+      responses:
+        201:
+          description: Successfully registered for tournament
+        404:
+          description: Tournament or user not found.
+        409:
+          description: The tournament is not available for registration.
+        500:
+          description: Server error.
+
+  /api/tournaments/{tournamentId}/start:
+    patch:
+      tags:
+        - Tournaments
+      summary: Start existing tournament
+      parameters:
+        - name: tournamentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            description: ID of the tournament to start
+
+      responses:
+        201:
+          description: Tournament started.
+
+        404:
+          description: Tournament not found.
+
+        500:
+          description: Server error.
+
+  /api/tournaments/{tournamentId}/finish:
+    patch:
+      tags:
+        - Tournaments
+      summary: Finish existing tournament
+      parameters:
+        - name: tournamentId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            description: ID of the tournament to finish
+
+      responses:
+        201:
+          description: Tournament finished.
+
+        404:
+          description: Tournament not found.
+
+        500:
+          description: Server error.
+
+  /api/tournaments/find:
+    get:
+      tags:
+        - Tournaments
+      summary: Get tournaments - all or filtered by status
+      parameters:
+        - name: data
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, running, finished]
+            description: Filter tournaments by status
+
+      responses:
+        200:
+          description: Tournaments retrieved successfully
+        400:
+          description: Bad request - invalid status value
+        500:
+          description: Server error.
+
+  /api/tournaments/find_leaderboard/{id}:
+    get:
+      tags:
+        - Tournaments
+      summary: Get tournament leaderboard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the tournament
+      responses:
+        200:
+          description: Success
+        404:
+          description: Tournament not found
+        500:
+          description: Server error
+
+  /api/matches/finish:
+    patch:
+      tags:
+        - Match
+      summary: Finish match and set winner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - winnerUserId
+                - matchId
+                - tournamentId
+              properties:
+                winnerUserId:
+                  type: integer
+                  format: int64
+                  description: ID of the winning user
+                matchId:
+                  type: integer
+                  format: int64
+                  description: ID of the match to finish
+                tournamentId:
+                  type: integer
+                  format: int64
+                  description: ID of the tournament
+
+      responses:
+        201:
+          description: Match finished.
+        404:
+          description: User or match or tournament not found.
+        500:
+          description: Server error.
+
+components:
+  schemas:
+    singUpUser:
+      type: object
+      required:
+        - nickname
+      properties:
+        nickname:
+          type: string
+          description: nickname of the user (no spaces)
+          example: Don
+          pattern: '^\S+$'
+          minLength: 1
+
+    newTournament:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          example: "Summer Championship"
+          type: string
+          description: name of the tournament (no spaces at start/end)
+          pattern: '^\S(.*\S)?$'
+          minLength: 1
+          maxLength: 100
+
+    registerTournament:
+      type: object
+      required:
+        - tournamentId
+        - userId
+      properties:
+        tournamentId:
+          type: integer
+          format: int64
+          example: 1
+          minimum: 1
+          description: ID of the tournament to register for
+        userId:
+          type: integer
+          format: int64
+          example: 4
+          minimum: 1
+          description: ID of the user registering
