@@ -68,3 +68,27 @@ export async function addScoreToUser(
     };
   }
 }
+
+export async function addDataLoser(
+  loserId: number,
+  tournamentId: number,
+  transaction
+) {
+  const [participantUpdated] = await TournamentParticipant.update(
+    { isEliminated: true },
+    {
+      where: {
+        tournamentId: tournamentId,
+        userId: loserId,
+      },
+      transaction,
+    }
+  );
+
+  if (participantUpdated === 0) {
+    throw {
+      message: "Participant or user not found ",
+      statusCode: 404,
+    };
+  }
+}

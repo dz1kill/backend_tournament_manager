@@ -61,17 +61,23 @@ export async function findAvailableTournamentUsers(
   transaction: any
 ) {
   const query = `
-  SELECT tp.user_id AS "userId"
-    FROM tournament_participants tp
-    INNER JOIN users u ON tp.user_id = u.id
-    WHERE tp.tournament_id = $1
-      AND tp.is_eliminated = false
-      AND u.is_busy = false
-    ORDER BY -LOG(RANDOM()) / NULLIF(u.rating, 0)
-    LIMIT 2
-    FOR SHARE OF u SKIP LOCKED;
-
-  `;
+SELECT
+   p1.user_id AS "user1Id",
+   p2.user_id AS "user2Id"
+  FROM tournament_participants p1
+   JOIN users u1 ON p1.user_id = u1.id
+   JOIN tournament_participants p2 ON p1.tournament_id = p2.tournament_id
+   JOIN users u2 ON p2.user_id = u2.id
+   WHERE p1.tournament_id = $1
+    AND p1.is_eliminated = false
+    AND u1.is_busy = false
+    AND p2.is_eliminated = false
+    AND u2.is_busy = false
+    AND p1.user_id < p2.user_id  -- чтобы не брать одну и ту же пару дважды
+  ORDER BY ABS(u1.rating - u2.rating) ASC, RANDOM()
+  LIMIT 1
+  FOR SHARE OF u1, u2 SKIP LOCKED;
+`;
 
   const results = await sequelize.query(query, {
     bind: [tournamentId],
