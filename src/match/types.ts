@@ -3,6 +3,7 @@ export type FinishMatchDTO = {
     winnerUserId: number;
     matchId: number;
     tournamentId: number;
+    loserId: number;
   };
 };
 

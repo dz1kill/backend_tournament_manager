@@ -1,5 +1,6 @@
 import sequelize from "../models";
 import {
+  addDataLoser,
   addScoreToUser,
   addScoreUserToTournament,
   matchFinish,
@@ -9,7 +10,8 @@ import { FinishMatchResult } from "./types";
 export async function updateMatchWinner(
   winnerUserId: number,
   matchId: number,
-  tournamentId: number
+  tournamentId: number,
+  loserId: number
 ): Promise<FinishMatchResult> {
   const pointsToAdd = 10;
 
@@ -21,6 +23,7 @@ export async function updateMatchWinner(
       transaction,
       pointsToAdd
     );
+    await addDataLoser(loserId, tournamentId, transaction);
     await addScoreToUser(winnerUserId, pointsToAdd, transaction);
   });
   return {

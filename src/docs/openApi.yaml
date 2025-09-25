@@ -182,7 +182,12 @@ paths:
                 - winnerUserId
                 - matchId
                 - tournamentId
+                - loserId
               properties:
+                loserId:
+                  type: integer
+                  format: int64
+                  description: ID of the winning user
                 winnerUserId:
                   type: integer
                   format: int64
